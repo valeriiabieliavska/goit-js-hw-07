@@ -20,20 +20,31 @@ width="900" height="650"
   .join("");
 gallery.insertAdjacentHTML("beforeend", markup);
 
-gallery.addEventListener("click", (event) => {
+gallery.addEventListener("click", onOpenModalImage);
+
+function onOpenModalImage(event) {
   event.preventDefault();
+  if (event.target.nodeName !== "IMG") {
+    return;
+  }
 
-  const instance = basicLightbox.create(`
-    <img src="${event.target.dataset.source}">
-`);
-  instance.show();
-
-  gallery.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      instance.close();
+  const instance = basicLightbox.create(
+    `
+<img src="${event.target.dataset.source}" >`,
+    {
+      onShow: (instance) => {
+        document.addEventListener("keydown", onModalClose);
+      },
+      onClose: (instance) => {
+        document.removeEventListener("keydown", onModalClose);
+      },
     }
-  });
-});
+  );
+  function onModalClose(event) {
+    if (event.key === "Escape") instance.close();
+  }
+  instance.show();
+}
 
 // const gallery = document.querySelector(".gallery");
 // const items = [];
@@ -65,15 +76,6 @@ gallery.addEventListener("click", (event) => {
 //     <img src="${event.target.dataset.source}" width="900" height="650">
 // `);
 
-//   instance.show();
-
-//   gallery.addEventListener("keydown", (event) => {
-//     if (event.key === "Escape") {
-//       instance.close();
-//     }
-//   });
-// });
-
 // galleryItems.forEach((el) => {
 // const galleryItem = document.createElement('div');  додає div
 // galleryItem.className = 'gallery__item'; додає класс div
@@ -90,9 +92,13 @@ gallery.addEventListener("click", (event) => {
 // JavaScript свойство nodeName объекта Node возвращает строку (DOMString), содержащую имя текущего узла
 
 // 'keydown' - Натискаючи клавішу, спочатку відбувається keydown, після чого - keyup, коли клавішу відпустили.
+// Властивість key повертає символ, згенерований натисканням клавіші, враховуючи стан клавіш-модифікаторів,
+// наприклад, Shift, а також поточну мову.
+// Властивість code повертає код фізичної клавіші на клавіатурі і не залежить від мови.
 // insertAdjacentHTML - Метод insertAdjacentHTML позволяет вставить строку HTML кода в любое место страницы.
 //  Код вставляется относительно опорного элемента.
 //  Свойство dataset позволяет считывать или устанавливать любые дата-атрибуты на HTML-элементе.
 // Метод EventTarget.addEventListener() регистрирует определённый обработчик события, вызванного на EventTarget.
 // EventTarget может быть Element, Document, Window, или любым другим объектом, поддерживающим события
 //   (таким как XMLHttpRequest(en - US)).
+// event.target - це посилання на вихідний елемент, на якому відбулася подія, в процесі спливання вона - незмінна.
